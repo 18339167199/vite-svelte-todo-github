@@ -1,8 +1,7 @@
 <script lang=ts>
 import { todoAdd } from '../api'
 import Loading from './components/Loading.svelte'
-
-const { refreshTodoList }: { refreshTodoList: () => void } = $props()
+import { getTodoList } from '../stores/todoStore'
 
 let loading = $state(false)
 const formState = $state({
@@ -26,7 +25,7 @@ const addTodo = async () => {
     if (code === 0) {
         formState.title = ''
         formState.content = ''
-        refreshTodoList()
+        getTodoList()
     }
     loading = false
 }

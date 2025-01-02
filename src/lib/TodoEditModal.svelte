@@ -3,8 +3,7 @@ import { todoPut, todoDelete } from '../api/index'
 import { untrack } from 'svelte'
 import { useDialog } from '../hook/useDialog.svelte'
 import Button from './components/Button.svelte'
-
-const { refreshTodoList }: { refreshTodoList: () => void } = $props()
+import { getTodoList } from '../stores/todoStore'
 
 const { dialogInfo, closeDialog } = useDialog()
 let dialogDom: HTMLDialogElement | undefined = $state()
@@ -23,7 +22,7 @@ const updateTodo = async () => {
     const { code } = await todoPut({ id: editTodo.id, title, content })
     if (code === 0) {
         closeDialog()
-        refreshTodoList()
+        getTodoList()
     }
     loading = false
 }
@@ -34,7 +33,7 @@ const deleteTodo = async () => {
     const { code } = await todoDelete([editTodo.id])
     if (code === 0) {
         closeDialog()
-        refreshTodoList()
+        getTodoList()
     }
     loading = false
 }

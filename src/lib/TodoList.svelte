@@ -1,8 +1,9 @@
 <script lang="ts">
-import { todoDelete, todoGet, todoPut, batchTodoPut, type Todo } from '../api'
+import { todoDelete, todoPut, batchTodoPut, type Todo } from '../api'
 import { flip } from 'svelte/animate'
 import { useDialog } from '../hook/useDialog.svelte'
 import Button from './components/Button.svelte'
+import { todoList, getTodoList } from '../stores/todoStore'
 
 interface LoadingState {
     /** todo id */
@@ -13,26 +14,18 @@ interface LoadingState {
 
 type TodoListType = 'done' | 'undone'
 
-const { refreshTodoList }: { refreshTodoList: () => void } = $props()
-
-let todoList: Todo[] = $state([])
-let finishTodoList = $derived.by(() => todoList.filter(({ done }) => done).sort((a, b) => b.createDate - a.createDate))
-let unFinishTodoList = $derived.by(() => todoList.filter(({ done }) => !done).sort((a, b) => b.createDate - a.createDate))
+let finishTodoList = $derived.by(() => $todoList.filter(({ done }) => done).sort((a, b) => b.createDate - a.createDate))
+let unFinishTodoList = $derived.by(() => $todoList.filter(({ done }) => !done).sort((a, b) => b.createDate - a.createDate))
 const loading: LoadingState = $state({ id: null, loadingType: null })
 const { openDialog } = useDialog()
 let selecteeTodoList: Todo['id'][] = $state([])
 $inspect(selecteeTodoList)
 
-$inspect(todoList, finishTodoList, unFinishTodoList)
+$inspect($todoList, finishTodoList, unFinishTodoList)
 
 const setLoading = (params?: LoadingState) => {
     loading.id = params?.id ?? null
     loading.loadingType = params?.loadingType ?? null
-}
-
-export const getTodoList = async () => {
-    const { code, data } = await todoGet()
-    if (code === 0) todoList = data
 }
 
 const changeTodo = async (id: Todo['id'], todo: Partial<Todo>) => {
@@ -50,7 +43,7 @@ const deleteTodos = async(ids: Todo['id'][]) => {
     const { code } = await todoDelete(selecteeTodoList)
     if (code === 0) {
         selecteeTodoList = []
-        refreshTodoList()
+        getTodoList()
     }
     deleteTodosLoading = false
 }
@@ -62,7 +55,7 @@ const batchTodoUpdateDone = async (done: boolean) => {
     const { code } = await batchTodoPut({ idList: selecteeTodoList, state: { done } })
     if (code === 0) {
         selecteeTodoList = []
-        refreshTodoList()
+        getTodoList()
     }
     batchTodoUpdateDoneLoading = false
 }
@@ -107,7 +100,7 @@ const batchTodoUpdateDone = async (done: boolean) => {
                             type='danger'
                         />
                     </div>
-                </li>    
+                </li>
             {/each}
         {:else}
             <div class="empty-view">
